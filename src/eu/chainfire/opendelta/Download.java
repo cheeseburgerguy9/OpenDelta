@@ -45,7 +45,7 @@ import javax.net.ssl.HttpsURLConnection;
 public class Download {
     private static final int HTTP_READ_TIMEOUT = 30000;
     private static final int HTTP_CONNECTION_TIMEOUT = 30000;
-    private static final String DIGEST_ALGO = "SHA-256";
+    private static final String DIGEST_ALGO = "MD5";
 
     public static final int STATUS_DOWNLOAD_STOP = 0;
     public static final int STATUS_DOWNLOAD_PAUSE = 1;
@@ -164,7 +164,7 @@ public class Download {
             try {
                 digest = MessageDigest.getInstance(DIGEST_ALGO);
             } catch (NoSuchAlgorithmException e) {
-                // No SHA-256 algorithm support
+                // No MD5 algorithm support
                 Logger.ex(e);
             }
         }
@@ -249,13 +249,13 @@ public class Download {
                 if (offset > 0) {
                     final ProgressListener listener = mUpdateService.getSUMProgress(
                             State.ACTION_CHECKING_SUM, mFile.getName());
-                    sumStr = UpdateService.getFileSHA256(mFile, listener);
+                    sumStr = UpdateService.getFileMD5(mFile, listener);
                 } else {
                     if (digest == null) return false;
                     sumStr = digestToHexString(digest);
                 }
-                boolean sumCheck = sumStr.equals(mMatchSUM);
-                Logger.d("sumStr=" + sumStr + " matchSUM=" + mMatchSUM);
+                boolean sumCheck = sumStr.trim().equals(mMatchSUM.trim());
+                Logger.d("sumStr=" + sumStr + " matchSUM=" + mMatchSUM + " sumCheck=" + String.valueOf(sumCheck));
                 if (!sumCheck) {
                     mIsRunning = false;
                     Logger.i("SUM check failed for " + mURL);

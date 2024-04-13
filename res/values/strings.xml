@@ -3,6 +3,7 @@
 
     <string name="app_name">OpenDelta</string>
     <string name="title">System updates</string>
+    <string name="updater_title">MicaOS Updater</string>
     <string name="action_about">About</string>
     <string name="about_content" translatable="false" >
 <![CDATA[
@@ -30,7 +31,8 @@
     <string name="state_action_ready">Update ready to flash</string>
     <string name="state_error_disk_space">Not enough disk space</string>
     <string name="state_error_unknown">Unknown error</string>
-    <string name="state_error_unofficial">Update aborted</string>
+    <string name="state_error_unofficial">OTA Updates disabled</string>
+    <string name="state_error_incremental_unavailable">Incremental updates unavailable\nFallen Back to Full update\nTry Again</string>
     <string name="error_disk_space_sub" formatted="false">%d MiB available, %d MiB required</string>
     <string name="notify_update_available">An update is available</string>
     <string name="notify_checking">Checking for update &#8230;</string>
@@ -48,11 +50,11 @@
     <string name="state_action_a_flash_verify">Verifying A-only Update &#8230;</string>
     <string name="state_action_a_flash_prep">Preparing A-only Update &#8230;</string>
     <string name="state_action_a_flash_install">Rebooting to install &#8230;</string>
-    <string name="state_action_ab_flash">Installing AB Update &#8230;</string>
-    <string name="state_action_ab_paused">AB Update paused</string>
+    <string name="state_action_ab_flash">Installing System Update &#8230;</string>
+    <string name="state_action_ab_paused">System Update paused</string>
     <string name="state_action_ab_finished">Done Installing. Reboot Now</string>
     <string name="button_reboot_short">Reboot</string>
-    <string name="state_action_flash_file_ready">Update ready to flash</string>
+    <string name="state_action_flash_file_ready">Update ready to Install</string>
     <string name="state_action_flash_file_no_sum">No local sum file found</string>
     <string name="state_action_flash_file_invalid_sum">Mismatch with local sum file</string>
 
@@ -73,7 +75,7 @@
     <string name="recovery_notice_description_not_secure"><![CDATA[Flashing updates in the current mode is only officially supported on <b>TWRP</b> recoveries. <i>Official</i> <b>CWM</b> builds are <i>not</i> supported, though some <i>community-built</i> versions of <b>CWM</b> <i>may</i> still work. Please make sure you are running a compatible recovery before continuing.]]></string>
     <string name="recovery_notice_description_reboot"><![CDATA[The device will now reboot to AOSP recovery to install the update]]></string>
     <string name="flash_after_update_notice_title">Notice</string>
-    <string name="state_error_not_official_extra" formatted="false">Update to version %s is not possible</string>
+    <string name="state_error_not_official_extra" formatted="false">OTA is unavailable. Use local update</string>
     <string name="button_build_delta">Download</string>
     <string name="button_stop">Stop</string>
     <string name="state_action_available">Update available</string>
@@ -86,6 +88,10 @@
     <string name="state_error_download_extra_sha">corrupted file</string>
     <string name="state_error_download_extra_resume">resume-able</string>
     <string name="text_current_version_header_title">Current version:</string>
+    <string name="text_ziptype_header_title">Build type:</string>
+    <string name="text_updatetype_header_title">Update type:</string>
+    <string name="text_update_type_incremental">Incremental Update</string>
+    <string name="text_update_type_full">Full Update</string>
     <string name="text_last_checked_header_title">Last checked:</string>
     <string name="text_update_version_title">Update version:</string>
     <string name="text_download_size_header_title">Download size:</string>
@@ -94,6 +100,8 @@
     <string name="auto_download_title">Scheduler action</string>
     <string name="download_disabled">Disabled</string>
     <string name="text_changelog_header_title">Changelog:</string>
+    <string name="changelog_title">Changelog</string>
+    <string name="changelog_error">Failed to load changelog</string>
     <string name="check_only">Check and notify</string>
     <string name="download_full">Auto download all</string>
     <string name="menu_settings">Settings</string>
@@ -139,6 +147,10 @@
     <string name="clear_files_title">Clean update files</string>
     <string name="clear_files_summary">Delete existing update files to force downloading full update</string>
     <string name="clean_files_feedback" formatted="false">Deleted %d files. Now press \'Check for updates\'</string>
+    <string name="category_test_mode">Test mode</string>
+    <string name="test_mode_title">Test mode</string>
+    <string name="test_mode_summary">Recieve beta updates</string>
+    <string name="test_mode_ribbon_text">TEST MODE</string>
     <string name="state_error_permissions">No storage permissions</string>
     <string name="state_error_flash">Failed preparing for A-only flash</string>
     <string name="progress_status_0">Idle &#8230;</string>
@@ -158,13 +170,16 @@
     <string name="ab_wake_lock_summary">Keep the CPU awake when installing an update. Makes updating fast even if the screen is off</string>
     <string name="ab_stream_flashing_title">AB stream flashing</string>
     <string name="ab_stream_flashing_summary">Download and flash at the same time\nDisable on unreliable connection</string>
-    <string name="state_error_flash_file_title">Couldn\'t flash that file</string>
+    <string name="pref_incremental_updates_title">Incremental Updates</string>
+    <string name="pref_incremental_updates_summary">Enable incremental updates</string>
+    <string name="pref_incremental_updates_summary_on">Incremental updates are enabled. Availability depends on maintainer support and device compatibility. Update size will be significantly smaller.</string>
+    <string name="pref_incremental_updates_summary_off">Incremental updates are disabled. Full updates will be downloaded.</string>    <string name="state_error_flash_file_title">Couldn\'t flash that file</string>
     <string name="select_file_activity_title">Select ZIP file</string>
     <string name="select_file_activity_error_toast">No file picker activity was found</string>
     <string name="button_select_file">File</string>
     <string name="state_error_ab_flash">Couldn\'t flash AB update</string>
     <string name="state_error_flash_file">Couldn\'t flash update</string>
-    <string name="no_sum_dialog_msg">No local sum file (.sha256sum) was found.\nPlease place the file at the same path of the file to flash.\nPress ignore to proceed without sum check (dangerous!)</string>
+    <string name="no_sum_dialog_msg">No local sum file (.md5sum) was found.\nPlease place the file at the same path of the file to flash.\nPress ignore to proceed without sum check (dangerous!)</string>
     <string name="invalid_sum_dialog_msg">File sum mismatched with local sum file.\nThis file is probably corrupted, please download it again.\nPress ignore to proceed.\nDo note this will probably fail later on anyways</string>
     <string name="sure_dialog_msg">This action cannot be undone.\nAre you sure?</string>
     <string name="install_channel_name">Update progress</string>

@@ -64,7 +64,8 @@ public class State {
         ERROR_PERMISSIONS,
         ERROR_FLASH,
         ERROR_AB_FLASH,
-        ERROR_FLASH_FILE
+        ERROR_FLASH_FILE,
+        ERROR_INCREMENTAL_UNAVAILABLE
     })
     public @interface StateInt {}
 
@@ -101,6 +102,7 @@ public class State {
     public static final int ERROR_FLASH = 30;
     public static final int ERROR_AB_FLASH = 31;
     public static final int ERROR_FLASH_FILE = 32;
+    public static final int ERROR_INCREMENTAL_UNAVAILABLE = 33;
 
     private static final HashMap<Integer, String> STATE_STRING_MAP;
     static {
@@ -138,6 +140,7 @@ public class State {
         tMap.put(ERROR_FLASH, "error_flash");
         tMap.put(ERROR_AB_FLASH, "error_ab_flash");
         tMap.put(ERROR_FLASH_FILE, "error_flash_file");
+        tMap.put(ERROR_INCREMENTAL_UNAVAILABLE, "error_incremental_unavailable");
         STATE_STRING_MAP = new HashMap<>(tMap);
     }
 
@@ -166,7 +169,8 @@ public class State {
         ERROR_CONNECTION,
         ERROR_AB_FLASH,
         ERROR_FLASH_FILE,
-        ERROR_FLASH
+        ERROR_FLASH,
+        ERROR_INCREMENTAL_UNAVAILABLE
     ));
 
     private static final HashSet<Integer> mAvailableStates = new HashSet<>(Arrays.asList(

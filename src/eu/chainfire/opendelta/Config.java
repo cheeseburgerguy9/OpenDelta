@@ -50,6 +50,8 @@ public class Config {
     private final static String PREF_AB_WAKE_LOCK_NAME = "ab_wake_lock";
     private final static String PREF_AB_STREAM_NAME = "ab_stream_flashing";
     private final static String PROP_AB_DEVICE = "ro.build.ab_update";
+    private final static String PREF_TEST_MODE_NAME = "test_mode_enabled";
+    private final static String PREF_INCREMENTAL_UPDATES = "pref_incremental_updates";
 
     private final SharedPreferences prefs;
 
@@ -58,16 +60,18 @@ public class Config {
     private final String filename_base;
     private final String path_base;
     private final String path_flash_after_update;
-    private final String url_base;
-    private final String url_base_sum;
-    private final String url_base_suffix;
     private final boolean support_ab_perf_mode;
+    private final boolean use_incremental_updates;
     private final boolean use_twrp;
+    private final boolean property_test_mode;
     private final String filename_base_prefix;
     private final String url_branch_name;
     private final String url_base_json;
-    private final String url_api_history;
-    private final String android_version;
+    private final String mica_version;
+    private final String test_url_base_json;
+    private final String full_update_base;
+    private final String incremental_update_base;
+    private final String property_ziptype;
 
     private Config(Context context) {
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -76,8 +80,13 @@ public class Config {
 
         property_version = SystemProperties.get(
                 res.getString(R.string.property_version));
+
+        mica_version = SystemProperties.get(
+                res.getString(R.string.mica_version));
+
         property_device = SystemProperties.get(
                 res.getString(R.string.property_device));
+
         filename_base = String.format(Locale.ENGLISH,
                 res.getString(R.string.filename_base), property_version);
 
@@ -87,24 +96,25 @@ public class Config {
                 File.separator);
         path_flash_after_update = String.format(Locale.ENGLISH, "%s%s%s",
                 path_base, "FlashAfterUpdate", File.separator);
-        url_base = String.format(
-                res.getString(R.string.url_base_full), property_device);
-        url_base_sum = String.format(
-                res.getString(R.string.url_base_full_sum), property_device);
-        url_base_suffix = res.getString(R.string.url_base_suffix);
         support_ab_perf_mode = res.getBoolean(R.bool.support_ab_perf_mode);
+        use_incremental_updates = res.getBoolean(R.bool.use_incremental_updates);
         use_twrp = res.getBoolean(R.bool.use_twrp);
         url_branch_name = res.getString(R.string.url_branch_name);
+        filename_base_prefix = String.format(Locale.ENGLISH,
+                res.getString(R.string.filename_base), mica_version);
+        property_ziptype = SystemProperties.get(res.getString(R.string.property_ziptype));
         url_base_json = String.format(
                 res.getString(R.string.url_base_json),
-                url_branch_name, property_device, property_device);
-        url_api_history = String.format(
-                res.getString(R.string.url_api_history),
-                url_branch_name, property_device, property_device);
-        android_version = SystemProperties.get(
-                res.getString(R.string.android_version));
-        filename_base_prefix = String.format(Locale.ENGLISH,
-                res.getString(R.string.filename_base), android_version);
+                url_branch_name, property_device);
+        test_url_base_json = String.format(
+                res.getString(R.string.test_url_base_json),
+                url_branch_name, property_device);
+        full_update_base = String.format(
+                res.getString(R.string.full_update_base), property_ziptype.toLowerCase(Locale.ENGLISH));
+        incremental_update_base = String.format(
+                res.getString(R.string.incremental_update_base), property_ziptype.toLowerCase(Locale.ENGLISH));
+        property_test_mode = !SystemProperties.get(
+                res.getString(R.string.property_test_mode)).isEmpty();
 
         Logger.d("property_version: %s", property_version);
         Logger.d("property_device: %s", property_device);
@@ -112,12 +122,12 @@ public class Config {
         Logger.d("filename_base_prefix: %s", filename_base_prefix);
         Logger.d("path_base: %s", path_base);
         Logger.d("path_flash_after_update: %s", path_flash_after_update);
-        Logger.d("url_base: %s", url_base);
-        Logger.d("url_base_sum: %s", url_base_sum);
         Logger.d("url_branch_name: %s", url_branch_name);
         Logger.d("url_base_json: %s", url_base_json);
-        Logger.d("url_api_history: %s", url_api_history);
         Logger.d("use_twrp: %d", use_twrp ? 1 : 0);
+        Logger.d("property_ziptype: %s", property_ziptype);
+        Logger.d("property_test_mode: %d", property_test_mode ? 1 : 0);
+        Logger.d("use_incremental_update: %d", use_incremental_updates ? 1 : 0);
     }
 
     public String getFilenameBase() {
@@ -130,18 +140,6 @@ public class Config {
 
     public String getPathFlashAfterUpdate() {
         return path_flash_after_update;
-    }
-
-    public String getUrlBase() {
-        return url_base;
-    }
-
-    public String getUrlBaseSum() {
-        return url_base_sum;
-    }
-
-    public String getUrlSuffix() {
-        return url_base_suffix;
     }
 
     public boolean getUseTWRP() {
@@ -178,7 +176,7 @@ public class Config {
     }
 
     public boolean getABStreamCurrent() {
-        return prefs.getBoolean(PREF_AB_STREAM_NAME, true);
+        return prefs.getBoolean(PREF_AB_STREAM_NAME, false);
     }
 
     public void setABStreamCurrent(boolean enable) {
@@ -232,15 +230,47 @@ public class Config {
         return url_base_json;
     }
 
-    public String getUrlAPIHistory() {
-        return url_api_history;
+    public String getMicaVersion() {
+        return mica_version;
+
+    }
+    public String getTestUrlBaseJson() {
+        return test_url_base_json;
     }
 
-    public String getAndroidVersion() {
-        return android_version;
+    public String getFullUpdateBase() {
+        return full_update_base;
+    }
+
+    public String getIncrementalUpdateBase() {
+        return incremental_update_base;
     }
 
     public static boolean isABDevice() {
         return SystemProperties.getBoolean(PROP_AB_DEVICE, false);
+    }
+
+    public String getZipType() {
+        return property_ziptype;
+    }
+
+    public boolean isTestModeSupported() {
+        return property_test_mode;
+    }
+
+    public boolean isTestModeEnabled() {
+        return prefs.getBoolean(PREF_TEST_MODE_NAME, false);
+    }
+
+    public void setTestModeEnabled(boolean enable) {
+        prefs.edit().putBoolean(PREF_TEST_MODE_NAME, enable).apply();
+    }
+
+    public boolean isIncrementalUpdatesEnabled() {
+        return prefs.getBoolean(PREF_INCREMENTAL_UPDATES, false);
+    }
+
+    public void setIncrementalUpdatesEnabled(boolean enable) {
+        prefs.edit().putBoolean(PREF_INCREMENTAL_UPDATES, enable).apply();
     }
 }

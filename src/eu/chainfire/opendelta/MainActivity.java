@@ -36,6 +36,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -157,6 +158,8 @@ public class MainActivity extends BaseActivity {
     private Button mPauseBtn;
     private Button mRebootBtn;
     private TextView mCurrentVersion;
+    private TextView mZiptype;
+    private TextView mUpdateType;
     private TextView mLastChecked;
     private TextView mDownloadSizeHeader;
     private TextView mDownloadSize;
@@ -167,6 +170,7 @@ public class MainActivity extends BaseActivity {
     private TextView mSub2;
     private Button mFileFlashButton;
     private SharedPreferences mPrefs;
+    private SharedPreferences.OnSharedPreferenceChangeListener mPreferenceChangeListener;
     private TextView mUpdateVersionTitle;
     private TextView mExtraText;
     private TextView mProgressPercent;
@@ -174,6 +178,9 @@ public class MainActivity extends BaseActivity {
     private int mProgressMax = 1;
     private boolean mPermOk;
     private boolean mStateSet = false;
+
+    // Incremental updates
+    private final static String PREF_INCREMENTAL_UPDATES = "pref_incremental_updates";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,13 +195,23 @@ public class MainActivity extends BaseActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeButtonEnabled(true);
-            actionBar.setDisplayShowTitleEnabled(false);
+            actionBar.setTitle(R.string.updater_title);
         }
 
         setupInsets(findViewById(R.id.main_layout));
 
         mHandler = new Handler(getMainLooper());
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        mPreferenceChangeListener = (sharedPreferences, key) -> {
+            if (key.equals(PREF_INCREMENTAL_UPDATES)) {
+                updateUpdateTypeText();
+            }
+        };
+    
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(mPreferenceChangeListener);
+    
 
         mTitle = findViewById(R.id.text_title);
         mSub = findViewById(R.id.progress_text);
@@ -208,6 +225,8 @@ public class MainActivity extends BaseActivity {
         mStopBtn = findViewById(R.id.button_stop);
         mPauseBtn = findViewById(R.id.button_pause);
         mCurrentVersion = findViewById(R.id.text_current_version);
+        mZiptype = findViewById(R.id.text_ziptype);
+        mUpdateType = findViewById(R.id.text_updatetype);
         mLastChecked = findViewById(R.id.text_last_checked);
         mDownloadSize = findViewById(R.id.text_download_size);
         mDownloadSizeHeader = findViewById(R.id.text_download_size_header);
@@ -280,6 +299,33 @@ public class MainActivity extends BaseActivity {
             textView.setTypeface(mTitle.getTypeface());
     }
 
+    // show Change log dialog
+    // Show Rom Specific Changelog and Device Specific Changelog
+    private void showChangelog() {
+        String changelogUrl = (mConfig.isTestModeEnabled() ? mConfig.getTestUrlBaseJson() : mConfig.getUrlBaseJson())
+                + "changelog.txt";
+
+        new AsyncTask<String, Void, String>() {
+            @Override
+            protected String doInBackground(String... params) {
+                return Download.asString(params[0]);
+            }
+    
+            @Override
+            protected void onPostExecute(String result) {
+                if (result != null) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle(R.string.changelog_title)
+                            .setMessage(result)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.changelog_error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute(changelogUrl);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Do not use res IDs in a switch case
@@ -294,10 +340,7 @@ public class MainActivity extends BaseActivity {
             return true;
         }
         if (id == R.id.changelog) {
-            Intent changelogActivity = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse(mConfig.getUrlBaseJson().replace(
-                            mConfig.getDevice() + ".json", "Changelog.txt")));
-            startActivity(changelogActivity);
+            showChangelog();
             return true;
         }
         if (id == R.id.info) {
@@ -466,6 +509,7 @@ public class MainActivity extends BaseActivity {
                 final boolean setVersionTitle = !hideVersion && !TextUtils.isEmpty(updateVersionTitle);
                 if (setVersionTitle) mUpdateVersionTitle.setText(updateVersionTitle);
                 mCurrentVersion.setText(mConfig.getFilenameBase());
+                mZiptype.setText(mConfig.getZipType());
                 mLastChecked.setText(lastCheckedText);
                 mExtraText.setText(extraText);
                 final boolean hideSize = TextUtils.isEmpty(downloadSizeText);
@@ -506,9 +550,18 @@ public class MainActivity extends BaseActivity {
                 mPauseBtn.setText(getString(enableResume ? R.string.button_resume_text
                         : R.string.button_pause_text));
                 mStateSet = true;
+
+                // update the update type text
+                updateUpdateTypeText();
             });
         }
     };
+
+    private void updateUpdateTypeText() {
+        mUpdateType.setText(mConfig.isIncrementalUpdatesEnabled()
+                ? getString(R.string.text_update_type_incremental)
+                : getString(R.string.text_update_type_full));
+    }
 
     private String getTitleForState(@StateInt int state, String stateStr, boolean hintShown) {
         switch (state) {
@@ -621,6 +674,12 @@ public class MainActivity extends BaseActivity {
             return;
         }
         handleProgressBar();
+        updateTestModeTab();
+    }
+
+    private void updateTestModeTab() {
+        boolean testModeEnabled = mConfig.isTestModeEnabled();
+        findViewById(R.id.test_mode_ribbon_container).setVisibility(testModeEnabled ? View.VISIBLE : View.GONE);
     }
 
     public void onButtonCheckNowClick(View v) {
@@ -636,7 +695,7 @@ public class MainActivity extends BaseActivity {
             Logger.d("[%s] required beyond this point", UpdateService.PERMISSION_REBOOT);
             return;
         }
-        ((PowerManager) getSystemService(Context.POWER_SERVICE)).rebootCustom(null);
+        ((PowerManager) getSystemService(Context.POWER_SERVICE)).reboot(null);
     }
 
     public void onButtonBuildNowClick(View v) {
@@ -820,6 +879,8 @@ public class MainActivity extends BaseActivity {
     public void onDestroy() {
         unbindService(mConnection);
         super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(this)
+            .unregisterOnSharedPreferenceChangeListener(mPreferenceChangeListener);
     }
 
     private boolean isExternalStorageDocument(Uri uri) {
