@@ -404,6 +404,20 @@ public class MainActivity extends BaseActivity {
                 return format.format(ms);
             }
         }
+    
+        // We only want to show the <version>-<buildtype>-<date>-<time> part in mCurrentVersion
+        private String beautifyVersion(String version) {
+            try {
+                String[] parts = version.split("-");
+                if (parts.length < 5) {
+                    return version;
+                }
+                return parts[1] + "-" + parts[2] + "-" + parts[4] + "-" + parts[5].substring(0, 6);
+            } catch (Exception e) {
+                // In case of any error, return the full version
+                return version;
+            }
+        }
 
         @Override
         public void update(@StateInt int state, Float progress,
@@ -507,8 +521,11 @@ public class MainActivity extends BaseActivity {
                 mUpdateVersion.setVisibility(hideVersion ? View.GONE : View.VISIBLE);
                 mUpdateVersionTitle.setVisibility(hideVersion ? View.GONE : View.VISIBLE);
                 final boolean setVersionTitle = !hideVersion && !TextUtils.isEmpty(updateVersionTitle);
-                if (setVersionTitle) mUpdateVersionTitle.setText(updateVersionTitle);
-                mCurrentVersion.setText(mConfig.getFilenameBase());
+		if (setVersionTitle) {
+		    String beautifiedTitle = beautifyVersion(updateVersionTitle);
+		    mUpdateVersionTitle.setText(beautifiedTitle);
+		}
+                mCurrentVersion.setText(beautifyVersion(mConfig.getFilenameBase()));
                 mZiptype.setText(mConfig.getZipType());
                 mLastChecked.setText(lastCheckedText);
                 mExtraText.setText(extraText);
