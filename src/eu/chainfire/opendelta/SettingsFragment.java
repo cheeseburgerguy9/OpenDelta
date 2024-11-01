@@ -31,7 +31,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.Preference.OnPreferenceChangeListener;
 import androidx.preference.PreferenceCategory;
-import androidx.preference.PreferenceFragment;
+import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
 import java.io.File;
@@ -42,7 +42,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class SettingsFragment extends PreferenceFragment implements
+public class SettingsFragment extends PreferenceFragmentCompat implements
         OnPreferenceChangeListener, OnTimeSetListener {
     private static final String KEY_NETWORKS = "metered_networks_config";
     private static final String KEY_AB_PERF_MODE = "ab_perf_mode";
