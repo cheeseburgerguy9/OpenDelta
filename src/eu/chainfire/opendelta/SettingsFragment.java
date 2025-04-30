@@ -33,6 +33,7 @@ import androidx.preference.Preference.OnPreferenceChangeListener;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
+import androidx.preference.SeekBarPreference;
 
 import java.io.File;
 import java.text.DateFormatSymbols;
@@ -65,6 +66,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
     private ListPreference mSchedulerMode;
     private SwitchPreferenceCompat mSchedulerSleep;
     private Preference mSchedulerDailyTime;
+    private SeekBarPreference mSchedulerHourlyHours;
     private Preference mForceReflash;
     private Preference mCleanFiles;
     private ListPreference mScheduleWeekDay;
@@ -114,6 +116,18 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         mSchedulerMode.setOnPreferenceChangeListener(this);
         mSchedulerMode.setSummary(mSchedulerMode.getEntry());
 
+        final int hourlyHours = prefs.getInt(SettingsActivity.PREF_SCHEDULER_HOURLY_TIME, 6);
+        mSchedulerHourlyHours = findPreference(SettingsActivity.PREF_SCHEDULER_HOURLY_TIME);
+        mSchedulerHourlyHours.setUpdatesContinuously(true);
+        mSchedulerHourlyHours.setOnPreferenceChangeListener(this);
+        if (hourlyHours > 1) {
+            final String summary = String.format(
+                    getContext().getString(R.string.unit_hours), hourlyHours);
+            mSchedulerHourlyHours.setSummary(summary);
+        } else {
+            mSchedulerHourlyHours.setSummary(R.string.unit_hour);
+        }
+
         final String schedulerMode = prefs.getString(SettingsActivity.PREF_SCHEDULER_MODE,
                 SettingsActivity.PREF_SCHEDULER_MODE_SMART);
         mSchedulerDailyTime = findPreference(SettingsActivity.PREF_SCHEDULER_DAILY_TIME);
@@ -133,7 +147,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         mScheduleWeekDay.setSummary(mScheduleWeekDay.getEntry());
         mScheduleWeekDay.setOnPreferenceChangeListener(this);
 
-        updateEnablement(autoDownload, mSchedulerMode.getEntry().toString());
+        updateEnablement(autoDownload, null);
+
     }
 
     @Override
@@ -197,6 +212,16 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
             int idx = mScheduleWeekDay.findIndexOfValue((String) newValue);
             mScheduleWeekDay.setSummary(mScheduleWeekDay.getEntries()[idx]);
             return true;
+        } else if (preference == mSchedulerHourlyHours) {
+            int val = (Integer) newValue;
+            if (val > 1) {
+                final String summary = String.format(
+                        getContext().getString(R.string.unit_hours), val);
+                mSchedulerHourlyHours.setSummary(summary);
+            } else {
+                mSchedulerHourlyHours.setSummary(R.string.unit_hour);
+            }
+            return true;
         } else if (preference.equals(mABPerfMode)) {
             mConfig.setABPerfModeCurrent((boolean) newValue);
             return true;
@@ -246,15 +271,20 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
                 schedulerMode.equals(SettingsActivity.PREF_SCHEDULER_MODE_SMART);
         final boolean isWeekly = isEnabled && !isSmart &&
                 schedulerMode.equals(SettingsActivity.PREF_SCHEDULER_MODE_WEEKLY);
+        final boolean isDaily = isEnabled && !isSmart &&
+                schedulerMode.equals(SettingsActivity.PREF_SCHEDULER_MODE_DAILY);
+        final boolean isHourly = isEnabled && !isSmart &&
+                schedulerMode.equals(SettingsActivity.PREF_SCHEDULER_MODE_HOURLY);
         final boolean isDownload = isEnabled &&
                 autoDownloadValue > UpdateService.PREF_AUTO_DOWNLOAD_CHECK;
 
-        mSchedulerMode.setEnabled(isEnabled);
-        mSchedulerSleep.setEnabled(isEnabled && isSmart);
-        mScheduleWeekDay.setEnabled(isEnabled && isWeekly);
-        mSchedulerDailyTime.setEnabled(isEnabled && !isSmart);
-        mBatteryLevel.setEnabled(isDownload && !mChargeOnly.isChecked());
-        mAutoDownloadCategory.setEnabled(isDownload);
+        mSchedulerMode.setVisible(isEnabled);
+        mSchedulerSleep.setVisible(isEnabled && isSmart);
+        mScheduleWeekDay.setVisible(isEnabled && isWeekly);
+        mSchedulerDailyTime.setVisible(isEnabled && !isSmart && (isDaily || isWeekly));
+        mSchedulerHourlyHours.setVisible(isEnabled && !isSmart && isHourly);
+        mBatteryLevel.setVisible(isDownload && !mChargeOnly.isChecked());
+        mAutoDownloadCategory.setVisible(isDownload);
     }
 
     private void showTimePicker() {
