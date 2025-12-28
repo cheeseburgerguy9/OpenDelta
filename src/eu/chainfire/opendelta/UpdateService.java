@@ -1406,190 +1406,219 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
                 Logger.d("Checking for latest build");
 
-                String url = mConfig.isTestModeEnabled()
-                        ? mConfig.getTestUrlBaseJson()
-                        : mConfig.getUrlBaseJson();
+                // Initialize retry/fallback variables
+                boolean tryIncremental = mConfig.isIncrementalUpdatesEnabled();
+                boolean fallbackToFull = false;
 
-                url += (mConfig.isIncrementalUpdatesEnabled()
-                        ? mConfig.getIncrementalUpdateBase()
-                        : mConfig.getFullUpdateBase());
+                // Loop for fallback mechanism
+                while (true) {
+                    String url = mConfig.isTestModeEnabled()
+                            ? mConfig.getTestUrlBaseJson()
+                            : mConfig.getUrlBaseJson();
 
-                String latestBuild = null;
-                String urlOverride = null;
-                String sumOverride = null;
-                String expectedFilename = null;
-                List<String> payloadProps = null;
+                    url += (tryIncremental
+                            ? mConfig.getIncrementalUpdateBase()
+                            : mConfig.getFullUpdateBase());
 
-                String buildData = Download.asString(url);
-                if (buildData == null || buildData.length() == 0) {
-                    mState.update(State.ERROR_DOWNLOAD, url, Download.ERROR_CODE_NEWEST_BUILD);
-                    mNotificationManager.cancel(NOTIFICATION_BUSY);
-                    return;
-                }
-                JSONObject object;
-                try {
-                    object = new JSONObject(buildData);
-                    JSONArray updatesList = object.getJSONArray("response");
-                    for (int i = 0; i < updatesList.length(); i++) {
-                        if (updatesList.isNull(i)) {
+                    String latestBuild = null;
+                    String urlOverride = null;
+                    String sumOverride = null;
+                    String expectedFilename = null;
+                    List<String> payloadProps = null;
+
+                    String buildData = Download.asString(url);
+                    if (buildData == null || buildData.length() == 0) {
+                        if (tryIncremental && !fallbackToFull) {
+                            Logger.d("Incremental JSON download failed, falling back to full update check");
+                            fallbackToFull = true;
+                            tryIncremental = false;
                             continue;
                         }
-                        try {
-                            JSONObject build = updatesList.getJSONObject(i);
-                            String fileName = new File(build.getString("filename")).getName();
-                            urlOverride = build.getString("url");
-                            sumOverride = build.getString("md5");
-                            if (build.has("expected_filename")) {
-                                expectedFilename = build.getString("expected_filename");
+                        mState.update(State.ERROR_DOWNLOAD, url, Download.ERROR_CODE_NEWEST_BUILD);
+                        mNotificationManager.cancel(NOTIFICATION_BUSY);
+                        return;
+                    }
+                    JSONObject object;
+                    try {
+                        object = new JSONObject(buildData);
+                        JSONArray updatesList = object.getJSONArray("response");
+                        for (int i = 0; i < updatesList.length(); i++) {
+                            if (updatesList.isNull(i)) {
+                                continue;
                             }
-                            if (build.has("payload")) {
-                                payloadProps = new ArrayList<>();
-                                JSONArray payloadList = build.getJSONArray("payload");
-                                for (int j = 0; j < payloadList.length(); j++) {
-                                    if (payloadList.isNull(j)) continue;
-                                    JSONObject prop = payloadList.getJSONObject(j);
-                                    Iterator<String> keys = prop.keys();
-                                    while (keys.hasNext()) {
-                                        final String key = keys.next();
-                                        payloadProps.add(key + "=" + prop.get(key));
+                            try {
+                                JSONObject build = updatesList.getJSONObject(i);
+                                String fileName = new File(build.getString("filename")).getName();
+                                urlOverride = build.getString("url");
+                                sumOverride = build.getString("md5");
+                                if (build.has("expected_filename")) {
+                                    expectedFilename = build.getString("expected_filename");
+                                }
+                                if (build.has("payload")) {
+                                    payloadProps = new ArrayList<>();
+                                    JSONArray payloadList = build.getJSONArray("payload");
+                                    for (int j = 0; j < payloadList.length(); j++) {
+                                        if (payloadList.isNull(j)) continue;
+                                        JSONObject prop = payloadList.getJSONObject(j);
+                                        Iterator<String> keys = prop.keys();
+                                        while (keys.hasNext()) {
+                                            final String key = keys.next();
+                                            payloadProps.add(key + "=" + prop.get(key));
+                                        }
                                     }
                                 }
-                            }
-                            Logger.d("parsed from json:");
-                            Logger.d("fileName= " + fileName);
+                                Logger.d("parsed from json:");
+                                Logger.d("fileName= " + fileName);
                                 latestBuild = fileName;
-                            if (urlOverride != null && !urlOverride.equals(""))
-                                Logger.d("url= " + urlOverride);
-                            if (sumOverride != null && !sumOverride.equals("")) {
-                                Logger.d("md5 = " + sumOverride);
+                                if (urlOverride != null && !urlOverride.equals(""))
+                                    Logger.d("url= " + urlOverride);
+                                if (sumOverride != null && !sumOverride.equals("")) {
+                                    Logger.d("md5 = " + sumOverride);
+                                }
+                                if (payloadProps != null) {
+                                    for (String str : payloadProps) {
+                                        Logger.d(str);
+                                    }
+                                }
+                            } catch (JSONException e) {
+                                Logger.ex(e);
+                                mState.update(State.ERROR_DOWNLOAD, Download.ERROR_CODE_JSON_MALFORMED);
+                                return;
                             }
-                            if (payloadProps != null) {
-                                for (String str : payloadProps) {
-                                    Logger.d(str);
+                        }
+                    } catch (Exception e) {
+                        Logger.ex(e);
+                        if (tryIncremental && !fallbackToFull) {
+                            Logger.d("Incremental JSON parsing failed, falling back to full update check");
+                            fallbackToFull = true;
+                            tryIncremental = false;
+                            continue;
+                        }
+                        // Don't disable incremental permanently, just error out for now
+                        mState.update(State.ERROR_INCREMENTAL_UNAVAILABLE);
+                        return;
+                    }
+
+                    // if we don't even find a build on dl
+                    if (latestBuild == null || latestBuild.length() == 0) {
+                        Logger.d("no latest build found at " + url + " for " + mConfig.getDevice());
+                        if (tryIncremental && !fallbackToFull) {
+                             Logger.d("No incremental build found, falling back to full update check");
+                             fallbackToFull = true;
+                             tryIncremental = false;
+                             continue;
+                        }
+                        return;
+                    }
+
+                    String latestFetch = urlOverride;
+                    String latestFetchSUM = sumOverride;
+                    Logger.d("latest build for device " + mConfig.getDevice() + " is " + latestFetch);
+
+                    String currentVersionZip = mConfig.getFilenameBase() + ".zip";
+                    boolean updateAvailable = latestBuild != null && forceFlash;
+
+                    if (latestBuild != null && !forceFlash) {
+                        if (tryIncremental) {
+                            Logger.d("Incremental updates enabled");
+                            // Allow mismatch in prefix (e.g. MicaOS- vs none)
+                            updateAvailable = currentVersionZip.equals(expectedFilename)
+                                    || (expectedFilename != null && currentVersionZip.endsWith(expectedFilename));
+
+                            if (!updateAvailable) {
+                                Logger.d("Current version zip does not match expected filename. Fall back to full update");
+                                if (!fallbackToFull) {
+                                    fallbackToFull = true;
+                                    tryIncremental = false;
+                                    continue;
                                 }
                             }
-                        } catch (JSONException e) {
-                            Logger.ex(e);
-                            mState.update(State.ERROR_DOWNLOAD, Download.ERROR_CODE_JSON_MALFORMED);
-                            return;
-                        }
-                    }
-                } catch (Exception e) {
-                    Logger.ex(e);
-                    if(mConfig.isIncrementalUpdatesEnabled()) {
-                        mConfig.setIncrementalUpdatesEnabled(false);                        
-                    }
-
-                    mState.update(State.ERROR_INCREMENTAL_UNAVAILABLE);
-                    return;
-                }
-
-                // if we don't even find a build on dl no sense to continue
-                if (latestBuild == null || latestBuild.length() == 0) {
-                    Logger.d("no latest build found at " +
-                            (mConfig.isTestModeEnabled()
-                                    ? mConfig.getTestUrlBaseJson()
-                                    : mConfig.getUrlBaseJson())
-                            +
-                            (mConfig.isIncrementalUpdatesEnabled()
-                                    ? mConfig.getIncrementalUpdateBase()
-                                    : mConfig.getFullUpdateBase())
-                            +
-                            " for " + mConfig.getDevice());
-                    return;
-                }
-
-                String latestFetch = urlOverride;
-                String latestFetchSUM = sumOverride;
-                Logger.d("latest build for device " + mConfig.getDevice() + " is " + latestFetch);
-
-                String currentVersionZip = mConfig.getFilenameBase() + ".zip";
-                boolean updateAvailable = latestBuild != null && forceFlash;
-                if (latestBuild != null && !forceFlash) {
-                    if(mConfig.isIncrementalUpdatesEnabled()) {
-                        Logger.d("Incremental updates enabled");
-                        updateAvailable = currentVersionZip.equals(expectedFilename);
-                        if(!updateAvailable) {
-                            Logger.d("Current version zip does not match expected filename. Fall back to full update");
-                        }
-                    } else{
-                        try {
-                            final long currFileDate = Long.parseLong(currentVersionZip
-                                    .split("-")[4]);
-                            final long latestFileDate = Long.parseLong(latestBuild
-                                    .split("-")[4]);
-                            
-                            final long curFileTime = Long.parseLong(currentVersionZip
-                                    .split("-")[5].substring(0, 6));
-                            final long latestFileTime = Long.parseLong(latestBuild
-                                    .split("-")[5].substring(0, 6));
-
-                            updateAvailable = latestFileDate > currFileDate;
-                            // If dates are the same, check the time
-                            if (latestFileDate == currFileDate) {
-                                updateAvailable = latestFileTime > curFileTime;
-                            }
-
-                        } catch (NumberFormatException exception) {
-                            // Just incase someone decides to 
-                            // make up his own zip / build name and F's this up
-                            Logger.d("Build name malformed");
-                            Logger.ex(exception);
-                        }
-                    }
-                }
-                mPrefs.edit().putString(PREF_LATEST_FULL_NAME,
-                        updateAvailable ? latestBuild : null).commit();
-                if (!updateAvailable) return;
-
-                if (payloadProps != null) {
-                    mPrefs.edit().putStringSet(PREF_LATEST_PAYLOAD_PROPS,
-                            payloadProps.stream().collect(Collectors.toSet())).commit();
-                    mPrefs.edit().putString(PREF_READY_FILENAME_NAME, latestFetch).commit();
-                    Logger.d("update supports streaming");
-                } else {
-                    mPrefs.edit().remove(PREF_LATEST_PAYLOAD_PROPS).commit();
-                }
-
-                final String changelog = getChangelogString();
-                mPrefs.edit().putString(PREF_LATEST_CHANGELOG, changelog).commit();
-
-                if (checkExistingBuild(latestBuild, latestFetchSUM)) return;
-                
-                final long size = Download.getSize(latestFetch);
-                mPrefs.edit().putLong(PREF_DOWNLOAD_SIZE, size).commit();
-
-                Logger.d("check done: latest build available = " +
-                         mPrefs.getString(PREF_LATEST_FULL_NAME, null) +
-                         " ; updateAvailable = " + updateAvailable);
-
-                final StatFs stats = new StatFs(mConfig.getPathBase());
-                final long blockSize = stats.getBlockSizeLong();
-                final long blocks = (size + blockSize - 1) / blockSize;
-                final long requiredSpace = blocks * blockSize;
-                final long freeSpace = stats.getAvailableBytes();
-                Logger.d("requiredSpace = " + requiredSpace +
-                         " freeSpace = " + freeSpace);
-                if (freeSpace < requiredSpace) {
-                    mState.update(State.ERROR_DISK_SPACE,
-                            null, freeSpace, requiredSpace, null, null);
-                    Logger.d("not enough space!");
-                    return;
-                }
-
-                if (checkOnly == PREF_AUTO_DOWNLOAD_FULL) {
-                    if (userInitiated || mNetworkState.getState()) {
-                        final String latestSUM = latestFetchSUM;
-                        if (latestSUM != null) {
-                            downloadBuild(latestFetch, latestSUM, latestBuild);
                         } else {
-                            mState.update(State.ERROR_DOWNLOAD, Download.ERROR_CODE_NO_SUM_FILE);
-                            Logger.d("aborting download due to md5sum not found");
+                            try {
+                                String[] currParts = currentVersionZip.split("-");
+                                String[] latestParts = latestBuild.split("-");
+
+                                if (currParts.length > 5 && latestParts.length > 5) {
+                                    final long currFileDate = Long.parseLong(currParts[4]);
+                                    final long latestFileDate = Long.parseLong(latestParts[4]);
+
+                                    final long curFileTime = Long.parseLong(currParts[5].substring(0, 6));
+                                    final long latestFileTime = Long.parseLong(latestParts[5].substring(0, 6));
+
+                                    updateAvailable = latestFileDate > currFileDate;
+                                    // If dates are the same, check the time
+                                    if (latestFileDate == currFileDate) {
+                                        updateAvailable = latestFileTime > curFileTime;
+                                    }
+                                } else {
+                                    Logger.d("Build name malformed (parts length)");
+                                }
+                            } catch (Exception exception) {
+                                // Just incase someone decides to
+                                // make up his own zip / build name and F's this up
+                                Logger.d("Build name malformed");
+                                Logger.ex(exception);
+                            }
                         }
-                    } else {
-                        mState.update(State.ERROR_DOWNLOAD, Download.ERROR_CODE_NO_CONNECTION);
-                        Logger.d("aborting download due to network state");
                     }
+
+                    // If we are here, we have finished the check
+                    // Proceed to process the result
+                    mPrefs.edit().putString(PREF_LATEST_FULL_NAME,
+                            updateAvailable ? latestBuild : null).commit();
+                    if (!updateAvailable) return;
+
+                    if (payloadProps != null) {
+                        mPrefs.edit().putStringSet(PREF_LATEST_PAYLOAD_PROPS,
+                                payloadProps.stream().collect(Collectors.toSet())).commit();
+                        mPrefs.edit().putString(PREF_READY_FILENAME_NAME, latestFetch).commit();
+                        Logger.d("update supports streaming");
+                    } else {
+                        mPrefs.edit().remove(PREF_LATEST_PAYLOAD_PROPS).commit();
+                    }
+
+                    final String changelog = getChangelogString();
+                    mPrefs.edit().putString(PREF_LATEST_CHANGELOG, changelog).commit();
+
+                    if (checkExistingBuild(latestBuild, latestFetchSUM)) return;
+
+                    final long size = Download.getSize(latestFetch);
+                    mPrefs.edit().putLong(PREF_DOWNLOAD_SIZE, size).commit();
+
+                    Logger.d("check done: latest build available = " +
+                             mPrefs.getString(PREF_LATEST_FULL_NAME, null) +
+                             " ; updateAvailable = " + updateAvailable);
+
+                    final StatFs stats = new StatFs(mConfig.getPathBase());
+                    final long blockSize = stats.getBlockSizeLong();
+                    final long blocks = (size + blockSize - 1) / blockSize;
+                    final long requiredSpace = blocks * blockSize;
+                    final long freeSpace = stats.getAvailableBytes();
+                    Logger.d("requiredSpace = " + requiredSpace +
+                             " freeSpace = " + freeSpace);
+                    if (freeSpace < requiredSpace) {
+                        mState.update(State.ERROR_DISK_SPACE,
+                                null, freeSpace, requiredSpace, null, null);
+                        Logger.d("not enough space!");
+                        return;
+                    }
+
+                    if (checkOnly == PREF_AUTO_DOWNLOAD_FULL) {
+                        if (userInitiated || mNetworkState.getState()) {
+                            final String latestSUM = latestFetchSUM;
+                            if (latestSUM != null) {
+                                downloadBuild(latestFetch, latestSUM, latestBuild);
+                            } else {
+                                mState.update(State.ERROR_DOWNLOAD, Download.ERROR_CODE_NO_SUM_FILE);
+                                Logger.d("aborting download due to md5sum not found");
+                            }
+                        } else {
+                            mState.update(State.ERROR_DOWNLOAD, Download.ERROR_CODE_NO_CONNECTION);
+                            Logger.d("aborting download due to network state");
+                        }
+                    }
+                    // Break the loop as we have successfully processed the update check
+                    break;
                 }
             } finally {
                 if (mWifiLock.isHeld()) mWifiLock.release();
