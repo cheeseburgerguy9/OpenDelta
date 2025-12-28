@@ -1415,17 +1415,20 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
                 if (latestBuild != null && !forceFlash) {
                     if(mConfig.isIncrementalUpdatesEnabled()) {
                         Logger.d("Incremental updates enabled");
+                        if (expectedFilename != null && expectedFilename.equals(mConfig.getVersion() + ".zip")) {
+                            updateAvailable = true;
+                        }
                     } else{
                         try {
                             final long currFileDate = Long.parseLong(currentVersionZip
-                                    .split("-")[6]);
+                                    .split("-")[4]);
                             final long latestFileDate = Long.parseLong(latestBuild
-                                    .split("-")[6]);
+                                    .split("-")[4]);
                             
                             final long curFileTime = Long.parseLong(currentVersionZip
-                                    .split("-")[7].replace(".zip", ""));
+                                    .split("-")[5].replace(".zip", ""));
                             final long latestFileTime = Long.parseLong(latestBuild
-                                    .split("-")[7].replace(".zip", ""));
+                                    .split("-")[5].replace(".zip", ""));
 
                             updateAvailable = latestFileDate > currFileDate;
                             // If dates are the same, check the time

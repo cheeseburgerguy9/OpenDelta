@@ -5,13 +5,13 @@
 	<item name="debug_output" type="bool">true</item>
 
 	<!-- Property to read for ROM version -->
-	<string name="property_version">ro.pixys.display.version</string>
+	<string name="property_version">ro.modversion</string>
 
 	<!-- Property to read for device identifier -->
-	<string name="property_device">ro.pixys.device</string>
+	<string name="property_device">ro.mica.device</string>
 
 	<!-- %s is expanded to property_version value. .zip, .delta, .update, .sign extensions added when needed -->
-	<string name="filename_base">PixysOS-%s</string>
+	<string name="filename_base">MicaOS-%s</string>
 
 	<!-- Path deltas are stored, relative to sdcard root -->
 	<string name="path_base">OpenDelta</string>
@@ -40,10 +40,10 @@
 	<!-- Applies to A-only devices only, should be overlayed from DT -->
 	<item name="use_twrp" type="bool">false</item>
 
-	<string name="pixys_version">ro.pixys.version</string>
+	<string name="pixys_version">ro.modversion</string>
 
 	<!-- ziptype -->
-	<string name="property_ziptype">ro.pixys.edition</string>
+	<string name="property_ziptype">ro.mica.edition</string>
 
 	<!-- testmode -->
 	<string name="property_test_mode">ro.pixys.ota.test_mode</string>
