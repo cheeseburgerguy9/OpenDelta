@@ -1,359 +1,409 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:background="@null"
-        android:layout_height="match_parent"
-        android:layout_marginStart="15dp"
-        android:layout_marginEnd="15dp"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:background="?android:attr/colorBackground">
 
-        <Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/action_bar"
-            style="?android:attr/actionBarStyle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:theme="?android:attr/actionBarTheme" 
-            android:label="@string/updater_title" />
+            android:layout_height="?attr/actionBarSize"
+            app:title="@string/updater_title"
+            android:background="?android:attr/colorBackground" />
 
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <TextView
-            android:id="@+id/text_title"
-            android:layout_width="match_parent"
-            android:layout_height="30sp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="30dp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:gravity="center_horizontal"
-            android:textAppearance="@style/TitleText" />
-
-        <TextView
-            android:id="@+id/extra_text"
-            android:layout_width="match_parent"
-            android:layout_height="40sp"
-            android:layout_marginTop="2dp"
-            android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="9sp"
-            android:autoSizeMaxTextSize="14sp"
-            android:ellipsize="marquee"
-            android:layout_gravity="center_horizontal"
-            android:gravity="center_horizontal"
-            android:textAppearance="@style/ValueText" />
-
-        <TextView
-            android:id="@+id/progress_text"
-            android:layout_width="match_parent"
-            android:layout_height="20sp"
-            android:ellipsize="start"
-            android:marqueeRepeatLimit="marquee_forever"
-            android:scrollHorizontally="true"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:singleLine="true"
-            android:textAppearance="@style/OtherText" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
-            android:id="@+id/progress_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:clipToPadding="false">
 
-<com.google.android.material.progressindicator.LinearProgressIndicator
-                android:id="@+id/progress_bar"
-		android:theme="@style/Theme.Material3.DynamicColors.DayNight"
-                android:layout_width="0dp"
+            <!-- Status Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="1"
-            android:indeterminate="true"
-            app:trackCornerRadius="8dp"
-            app:trackThickness="16dp"
-            app:indicatorColor="?attr/colorAccent"
-            app:trackColor="?attr/colorSurfaceVariant"
-            style="@style/SettingsLibProgressBarStyle.Linear.Expressive" />
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="?android:attr/colorBackground"
+                android:layout_marginBottom="16dp">
 
-        </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/text_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:textAlignment="center"
+                        android:textAppearance="@style/TitleText"
+                        tools:text="System is up to date" />
 
-            <TextView
-                android:id="@+id/progress_percent"
-                android:layout_width="wrap_content"
-                android:layout_height="20sp"
-                android:gravity="start"
-                android:singleLine="true"
-                android:textAppearance="@style/OtherText" />
+                    <TextView
+                        android:id="@+id/extra_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:textAlignment="center"
+                        android:textAppearance="@style/ValueText"
+                        tools:text="Android 14" />
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="20sp"
-                android:layout_weight="1" />
+                    <LinearLayout
+                        android:id="@+id/progress_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="24dp">
 
-            <TextView
-                android:id="@+id/progress_text2"
-                android:layout_width="wrap_content"
-                android:layout_height="20sp"
-                android:ellipsize="marquee"
-                android:gravity="end"
-                android:singleLine="true"
-                android:textAppearance="@style/OtherText" />
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/progress_bar"
+                            android:theme="@style/Theme.Material3.DynamicColors.DayNight"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:indeterminate="true"
+                            app:trackCornerRadius="8dp"
+                            app:trackThickness="16dp"
+                            app:indicatorColor="?attr/colorAccent"
+                            app:trackColor="?attr/colorSurfaceVariant"
+                            style="@style/SettingsLibProgressBarStyle.Linear.Expressive" />
 
-        </LinearLayout>
+                    </LinearLayout>
 
-        <!-- Everything ABOVE this space should have a constant sp height
-            and never be set to GONE (only INVISIBLE) -->
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp" />
+                    <TextView
+                        android:id="@+id/progress_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:ellipsize="start"
+                        android:marqueeRepeatLimit="marquee_forever"
+                        android:scrollHorizontally="true"
+                        android:singleLine="true"
+                        android:gravity="center"
+                        android:textAppearance="@style/OtherText" />
 
-        <TextView
-            android:id="@+id/text_last_checked_header"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/text_last_checked_header_title"
-            android:textAppearance="@style/HeaderText" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="4dp">
 
-        <TextView
-            android:id="@+id/text_last_checked"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/ValueText" />
+                        <TextView
+                            android:id="@+id/progress_percent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="start"
+                            android:singleLine="true"
+                            android:textAppearance="@style/OtherText" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp" />
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
 
-        <TextView
-            android:id="@+id/text_current_version_header"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/text_current_version_header_title"
-            android:textAppearance="@style/HeaderText" />
+                        <TextView
+                            android:id="@+id/progress_text2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="marquee"
+                            android:gravity="end"
+                            android:singleLine="true"
+                            android:textAppearance="@style/OtherText" />
 
-        <TextView
-            android:id="@+id/text_current_version"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/ValueText" />
+                    </LinearLayout>
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp" />
-        
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+                </LinearLayout>
 
-            <!-- For ziptype -->
+            </androidx.cardview.widget.CardView>
+
+            <!-- Info Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="2dp"
+                app:contentPadding="16dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                     <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:baselineAligned="false">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/text_last_checked_header"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/text_last_checked_header_title"
+                                android:textAppearance="@style/HeaderText" />
+
+                            <TextView
+                                android:id="@+id/text_last_checked"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/ValueText" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                             <TextView
+                                android:id="@+id/text_current_version_header"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/text_current_version_header_title"
+                                android:textAppearance="@style/HeaderText" />
+
+                            <TextView
+                                android:id="@+id/text_current_version"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/ValueText" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:baselineAligned="false">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/text_ziptype_header"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/text_ziptype_header_title"
+                                android:textAppearance="@style/HeaderText" />
+
+                            <TextView
+                                android:id="@+id/text_ziptype"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/ValueText" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/text_updatetype_header"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/text_updatetype_header_title"
+                                android:textAppearance="@style/HeaderText" />
+
+                            <TextView
+                                android:id="@+id/text_updatetype"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/ValueText" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+                     <TextView
+                        android:id="@+id/text_update_version_header"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_update_version_title"
+                        android:textAppearance="@style/HeaderText" />
+
+                    <TextView
+                        android:id="@+id/text_update_version"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/ValueText" />
+
+                    <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+                    <TextView
+                        android:id="@+id/text_download_size_header"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_download_size_header_title"
+                        android:textAppearance="@style/HeaderText" />
+
+                    <TextView
+                        android:id="@+id/text_download_size"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/ValueText" />
+
+                    <Space
+                        android:id="@+id/download_size_spacer"
+                        android:layout_width="match_parent"
+                        android:layout_height="10dp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Changelog Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="2dp"
+                app:contentPadding="16dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/text_changelog_header"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_changelog_header_title"
+                        android:textAppearance="@style/HeaderText" />
+
+                    <TextView
+                        android:id="@+id/text_changelog"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="vertical"
+                        android:visibility="gone"
+                        android:textAppearance="@style/ValueText"
+                        android:layout_marginTop="8dp"/>
+
+                    <Space
+                        android:id="@+id/changelog_placeholder"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Action Buttons -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center">
 
-                <TextView
-                    android:id="@+id/text_ziptype_header"
+                <Button
+                    android:id="@+id/button_stop"
+                    style="@style/ActionPrimaryButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/text_ziptype_header_title"
-                    android:textAppearance="@style/HeaderText" />
+                    android:onClick="onButtonStopClick"
+                    android:visibility="gone"
+                    android:text="@string/button_stop_text"
+                    android:layout_marginBottom="8dp"/>
 
-                <TextView
-                    android:id="@+id/text_ziptype"
+                <Button
+                    android:id="@+id/button_pause"
+                    style="@style/ActionPrimaryButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/ValueText" />
+                    android:onClick="onButtonPauseClick"
+                    android:visibility="gone"
+                    android:text="@string/button_pause_text"
+                    android:layout_marginBottom="8dp"/>
+
+                <Button
+                    android:id="@+id/button_select_file"
+                    style="@style/ActionPrimaryButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="onButtonSelectFileClick"
+                    android:text="@string/button_select_file"
+                    android:visibility="gone"
+                    android:layout_marginBottom="8dp"/>
+
+                <Button
+                    android:id="@+id/button_flash_now"
+                    style="@style/ActionPrimaryButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="onButtonFlashNowClick"
+                    android:visibility="invisible"
+                    android:text="@string/button_flash_now"
+                    android:layout_marginBottom="8dp"/>
+
+                <Button
+                    android:id="@+id/button_build_delta"
+                    style="@style/ActionPrimaryButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="onButtonBuildNowClick"
+                    android:visibility="invisible"
+                    android:text="@string/button_build_delta"
+                    android:layout_marginBottom="8dp"/>
+
+                <Button
+                    android:id="@+id/button_check_now"
+                    style="@style/ActionPrimaryButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="onButtonCheckNowClick"
+                    android:visibility="invisible"
+                    android:text="@string/button_check_short"
+                    android:layout_marginBottom="8dp"/>
+
+                <Button
+                    android:id="@+id/button_reboot_now"
+                    style="@style/ActionPrimaryButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="onButtonRebootNowClick"
+                    android:visibility="invisible"
+                    android:text="@string/button_reboot_short"
+                    android:layout_marginBottom="8dp"/>
+
             </LinearLayout>
 
-            <!-- For update type -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/text_updatetype_header"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/text_updatetype_header_title"
-                    android:textAppearance="@style/HeaderText" />
-
-                <TextView
-                    android:id="@+id/text_updatetype"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="@style/ValueText" />
-            </LinearLayout>
         </LinearLayout>
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp" />
-            
-        <TextView
-            android:id="@+id/text_update_version_header"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/text_update_version_title"
-            android:textAppearance="@style/HeaderText" />
-
-        <TextView
-            android:id="@+id/text_update_version"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/ValueText" />
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp" />
-
-        <TextView
-            android:id="@+id/text_download_size_header"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/text_download_size_header_title"
-            android:textAppearance="@style/HeaderText" />
-
-        <TextView
-            android:id="@+id/text_download_size"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/ValueText" />
-
-        <Space
-            android:id="@+id/download_size_spacer"
-            android:layout_width="match_parent"
-            android:layout_height="10dp" />
-
-        <TextView
-            android:id="@+id/text_changelog_header"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/text_changelog_header_title"
-            android:textAppearance="@style/HeaderText" />
-
-        <TextView
-            android:id="@+id/text_changelog"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:scrollbars="vertical"
-            android:visibility="gone"
-            android:textAppearance="@style/ValueText" />
-
-        <Space
-            android:id="@+id/changelog_placeholder"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="16dp" >
-
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <!-- Download buttons -->
-            <Button
-                android:id="@+id/button_stop"
-                style="@style/ActionPrimaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onButtonStopClick"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
-                android:visibility="gone"
-                android:text="@string/button_stop_text"/>
-
-            <Button
-                android:id="@+id/button_pause"
-                style="@style/ActionPrimaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onButtonPauseClick"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
-                android:visibility="gone"
-                android:text="@string/button_pause_text" />
-
-            <!-- Operation buttons -->
-            <Button
-                android:id="@+id/button_select_file"
-                style="@style/ActionPrimaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onButtonSelectFileClick"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
-                android:text="@string/button_select_file"
-                android:visibility="gone" />
-
-            <Button
-                android:id="@+id/button_flash_now"
-                style="@style/ActionPrimaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onButtonFlashNowClick"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
-                android:visibility="invisible"
-                android:text="@string/button_flash_now"/>
-
-            <Button
-                android:id="@+id/button_build_delta"
-                style="@style/ActionPrimaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onButtonBuildNowClick"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
-                android:visibility="invisible"
-                android:text="@string/button_build_delta"/>
-
-            <Button
-                android:id="@+id/button_check_now"
-                style="@style/ActionPrimaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onButtonCheckNowClick"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
-                android:visibility="invisible"
-                android:text="@string/button_check_short"/>
-
-            <Button
-                android:id="@+id/button_reboot_now"
-                style="@style/ActionPrimaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onButtonRebootNowClick"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
-                android:visibility="invisible"
-                android:text="@string/button_reboot_short"/>
-        </LinearLayout>
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <include
         android:id="@+id/test_mode_ribbon_container"
@@ -364,4 +414,4 @@
         android:translationZ="10dp"
         android:visibility="gone" />
 
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
