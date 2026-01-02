@@ -1525,8 +1525,41 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
                             updateAvailable = currentVersionZip.equals(expectedFilename)
                                     || (expectedFilename != null && currentVersionZip.endsWith(expectedFilename));
 
+                            if (updateAvailable) {
+                                // Also ensure the incremental update target is actually newer than current
+                                try {
+                                    String[] currParts = currentVersionZip.split("-");
+                                    String[] latestParts = latestBuild.split("-");
+
+                                    if (currParts.length > 5 && latestParts.length > 5) {
+                                        final long currFileDate = Long.parseLong(currParts[4]);
+                                        final long latestFileDate = Long.parseLong(latestParts[4]);
+
+                                        final long curFileTime = Long.parseLong(currParts[5].substring(0, 6));
+                                        final long latestFileTime = Long.parseLong(latestParts[5].substring(0, 6));
+
+                                        boolean isNewer = latestFileDate > currFileDate;
+                                        // If dates are the same, check the time
+                                        if (latestFileDate == currFileDate) {
+                                            isNewer = latestFileTime > curFileTime;
+                                        }
+                                        if (!isNewer) {
+                                            Logger.d("Incremental update found but not newer than current. Ignoring.");
+                                            updateAvailable = false;
+                                        }
+                                    } else {
+                                        Logger.d("Build name malformed (parts length) in incremental check");
+                                        updateAvailable = false;
+                                    }
+                                } catch (Exception exception) {
+                                    Logger.d("Build name malformed in incremental check");
+                                    Logger.ex(exception);
+                                    updateAvailable = false;
+                                }
+                            }
+
                             if (!updateAvailable) {
-                                Logger.d("Current version zip does not match expected filename. Fall back to full update");
+                                Logger.d("Current version zip does not match expected filename or not newer. Fall back to full update");
                                 if (!fallbackToFull) {
                                     fallbackToFull = true;
                                     tryIncremental = false;
