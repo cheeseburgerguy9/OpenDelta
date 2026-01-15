@@ -25,7 +25,7 @@ package eu.chainfire.opendelta;
 import static android.Manifest.permission.POST_NOTIFICATIONS;
 
 import android.app.Activity;
-import android.app.ActionBar;
+import androidx.appcompat.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -57,7 +57,7 @@ import android.widget.ImageView;
 import android.widget.Space;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission;
 import androidx.preference.PreferenceManager;
@@ -189,10 +189,10 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
 
         final Toolbar toolbar = findViewById(R.id.action_bar);
-        setActionBar(toolbar);
+        setSupportActionBar(toolbar);
 
         // Enable title and home button by default
-        final ActionBar actionBar = getActionBar();
+        final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeButtonEnabled(true);

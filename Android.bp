@@ -8,8 +8,10 @@ android_app {
     ],
     static_libs: [
         "androidx.core_core",
+        "androidx.appcompat_appcompat",
         "androidx.cardview_cardview",
         "androidx.preference_preference",
+        "com.google.android.material_material",
     ],
     certificate: "platform",
     privileged: true,

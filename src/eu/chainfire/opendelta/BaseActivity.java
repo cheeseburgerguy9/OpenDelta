@@ -19,16 +19,15 @@
  */
 package eu.chainfire.opendelta;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowInsetsController;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
 
-public class BaseActivity extends Activity {
+public class BaseActivity extends AppCompatActivity {
     protected void setupInsets(View rootView) {
         // Handle window insets for padding adjustments
         ViewCompat.setOnApplyWindowInsetsListener(rootView, (view, insets) -> {

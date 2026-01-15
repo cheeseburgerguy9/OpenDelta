@@ -40,7 +40,7 @@
             android:screenOrientation="portrait"
             android:label="@string/title"
             android:launchMode="singleInstance"
-            android:theme="@style/Theme.SubSettingsBase.Expressive"
+            android:theme="@style/Theme.OpenDelta.Main"
             android:exported="true" >
             <intent-filter android:priority="2147483647" >
                 <action android:name="android.settings.SYSTEM_UPDATE_SETTINGS" />
